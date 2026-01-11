@@ -21,14 +21,14 @@ const player = {
     y: canvas.height - 60,
     width: 50,
     height: 30,
-    speed: 5,
+    speed: 3,
     dx: 0
 };
 
 // Bullets
 /** @type {Bullet[]} */
 let bullets = [];
-const bulletSpeed = 7;
+const bulletSpeed = 5;
 const bulletWidth = 4;
 const bulletHeight = 15;
 
@@ -40,18 +40,22 @@ const alienCols = 11;
 const alienWidth = 40;
 const alienHeight = 30;
 const alienPadding = 10;
-let alienSpeed = 1;
+let alienSpeed = 0.5;
 let alienDirection = 1;
 let alienDropDistance = 20;
 
 // Alien bullets
 /** @type {Bullet[]} */
 let alienBullets = [];
-const alienShootChance = 0.001;
+const alienShootChance = 0.0003;
 
 // Keyboard state
 /** @type {Record<string, boolean>} */
 const keys = {};
+
+// Background image
+const backgroundImage = new Image();
+backgroundImage.src = 'images/game_background.jpg';
 
 // Initialize aliens
 function createAliens() {
@@ -277,7 +281,7 @@ function restartGame() {
     player.x = canvas.width / 2 - 25;
     bullets = [];
     alienBullets = [];
-    alienSpeed = 1;
+    alienSpeed = 0.5;
 
     createAliens();
     updateScore();
@@ -291,7 +295,12 @@ function restartGame() {
 
 // Draw everything
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw background image (or clear if not loaded)
+    if (backgroundImage.complete) {
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     drawPlayer();
 
@@ -324,6 +333,7 @@ function gameLoop() {
 
 // Keyboard controls
 document.addEventListener('keydown', (e) => {
+    console.log(JSON.stringify(keys))
     keys[e.key] = true;
 
     if (e.key === 'ArrowLeft') {

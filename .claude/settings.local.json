@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(del \"D:\\\\game_dev\\\\SpaceInvaders\\\\types.d.ts\")"
+      "Bash(del \"D:\\\\game_dev\\\\SpaceInvaders\\\\types.d.ts\")",
+      "Bash(dir:*)"
     ]
   }
 }
