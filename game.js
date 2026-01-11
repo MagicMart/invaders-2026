@@ -57,6 +57,10 @@ const keys = {};
 const backgroundImage = new Image();
 backgroundImage.src = 'images/game_background.jpg';
 
+// Player image
+const playerImage = new Image();
+playerImage.src = 'images/player.png';
+
 // Initialize aliens
 function createAliens() {
     aliens = [];
@@ -76,11 +80,13 @@ function createAliens() {
 
 // Draw player
 function drawPlayer() {
-    ctx.fillStyle = '#0f0';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // Draw cannon
-    ctx.fillRect(player.x + player.width / 2 - 5, player.y - 10, 10, 10);
+    if (playerImage.complete) {
+        ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+    } else {
+        // Fallback to rectangle if image not loaded
+        ctx.fillStyle = '#0f0';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
 }
 
 /**
