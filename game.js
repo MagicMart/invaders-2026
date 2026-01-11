@@ -151,10 +151,16 @@ function updateBullets() {
 function updateAliens() {
     let hitEdge = false;
 
+    // Speed up as aliens are destroyed
+    const aliveCount = aliens.filter(a => a.alive).length;
+    const totalAliens = alienRows * alienCols;
+    const speedMultiplier = 1 + ((totalAliens - aliveCount) / totalAliens) * 3;
+    const currentSpeed = alienSpeed * speedMultiplier;
+
     aliens.forEach(alien => {
         if (!alien.alive) return;
 
-        alien.x += alienSpeed * alienDirection;
+        alien.x += currentSpeed * alienDirection;
 
         if (alien.x <= 0 || alien.x + alien.width >= canvas.width) {
             hitEdge = true;
