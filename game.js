@@ -53,6 +53,77 @@ const alienShootChance = 0.0003;
 /** @type {Record<string, boolean>} */
 const keys = {};
 
+// Gamepad state
+/** @type {{connected: boolean, shootPressed: boolean, pausePressed: boolean, restartPressed: boolean}} */
+const gamepadState = {
+    connected: false,
+    shootPressed: false,
+    pausePressed: false,
+    restartPressed: false
+};
+
+// Gamepad event listeners
+window.addEventListener('gamepadconnected', (e) => {
+    const event = /** @type {GamepadEvent} */ (e);
+    console.log('Gamepad connected:', event.gamepad.id);
+    gamepadState.connected = true;
+});
+
+window.addEventListener('gamepaddisconnected', () => {
+    console.log('Gamepad disconnected');
+    gamepadState.connected = false;
+});
+
+// Poll gamepad input
+function pollGamepad() {
+    const gamepads = navigator.getGamepads();
+    const gamepad = gamepads[0];
+
+    if (!gamepad) return;
+
+    // Left stick X-axis (index 0) or D-pad
+    const axisX = gamepad.axes[0];
+    const dpadLeft = gamepad.buttons[14]?.pressed ?? false;
+    const dpadRight = gamepad.buttons[15]?.pressed ?? false;
+
+    // Movement: left stick or D-pad
+    if (axisX < -0.3 || dpadLeft) {
+        player.dx = -player.speed;
+    } else if (axisX > 0.3 || dpadRight) {
+        player.dx = player.speed;
+    } else if (!keys['ArrowLeft'] && !keys['ArrowRight']) {
+        // Only reset if keyboard isn't being used
+        player.dx = 0;
+    }
+
+    // A button (index 0) - Shoot
+    const shootButton = gamepad.buttons[0]?.pressed ?? false;
+    if (shootButton && !gamepadState.shootPressed) {
+        if (!gameState.paused && !gameState.gameOver) {
+            shoot();
+        }
+    }
+    gamepadState.shootPressed = shootButton;
+
+    // Start button (index 9) - Pause
+    const pauseButton = gamepad.buttons[9]?.pressed ?? false;
+    if (pauseButton && !gamepadState.pausePressed) {
+        if (!gameState.gameOver) {
+            gameState.paused = !gameState.paused;
+        }
+    }
+    gamepadState.pausePressed = pauseButton;
+
+    // Select button (index 8) - Restart when game over
+    const restartButton = gamepad.buttons[8]?.pressed ?? false;
+    if (restartButton && !gamepadState.restartPressed) {
+        if (gameState.gameOver) {
+            restartGame();
+        }
+    }
+    gamepadState.restartPressed = restartButton;
+}
+
 // Background image
 const backgroundImage = new Image();
 backgroundImage.src = 'images/game_background.jpg';
@@ -302,7 +373,6 @@ function restartGame() {
 
     const gameOverElement = document.getElementById('gameOver');
     if (gameOverElement) gameOverElement.style.display = 'none';
-    gameLoop();
 }
 
 // Draw everything
@@ -330,7 +400,14 @@ function draw() {
 
 // Game loop
 function gameLoop() {
-    if (gameState.gameOver) return;
+    // Poll gamepad input every frame (even when game over for restart)
+    pollGamepad();
+
+    if (gameState.gameOver) {
+        // Keep polling for restart input
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
     if (!gameState.paused) {
         updatePlayer();
