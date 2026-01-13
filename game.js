@@ -54,6 +54,7 @@ const alienPadding = 10;
 let alienSpeed = 0.5;
 let alienDirection = 1;
 let alienDropDistance = 20;
+const alienSpeedUpMultiplier = 3; // Max speed increase as aliens are destroyed
 
 // Alien bullets
 /** @type {Bullet[]} */
@@ -236,7 +237,7 @@ function updateAliens() {
     // Speed up as aliens are destroyed
     const aliveCount = aliens.filter(a => a.alive).length;
     const totalAliens = alienRows * alienCols;
-    const speedMultiplier = 1 + ((totalAliens - aliveCount) / totalAliens) * 3;
+    const speedMultiplier = 1 + ((totalAliens - aliveCount) / totalAliens) * alienSpeedUpMultiplier;
     const currentSpeed = alienSpeed * speedMultiplier;
 
     aliens.forEach(alien => {
