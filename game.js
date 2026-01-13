@@ -4,6 +4,17 @@
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('gameCanvas'));
 const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 
+// Difficulty settings
+const difficultySettings = {
+    easy: { baseSpeed: 0.3, speedIncrement: 0.2 },
+    medium: { baseSpeed: 0.5, speedIncrement: 0.3 },
+    hard: { baseSpeed: 0.8, speedIncrement: 0.4 }
+};
+
+/** @type {'easy' | 'medium' | 'hard'} */
+let currentDifficulty = 'medium';
+let gameStarted = false;
+
 // Game state
 /** @type {GameState} */
 let gameState = {
@@ -321,7 +332,7 @@ function loseLife() {
 // Next level
 function nextLevel() {
     gameState.level++;
-    alienSpeed += 0.3;
+    alienSpeed += difficultySettings[currentDifficulty].speedIncrement;
     updateLevel();
     createAliens();
 }
@@ -351,8 +362,13 @@ function endGame() {
     if (gameOverElement) gameOverElement.style.display = 'block';
 }
 
-// Restart game
-function restartGame() {
+// Start game with selected difficulty
+/** @param {'easy' | 'medium' | 'hard'} difficulty */
+function startGame(difficulty) {
+    currentDifficulty = difficulty;
+    gameStarted = true;
+    alienSpeed = difficultySettings[difficulty].baseSpeed;
+
     gameState = {
         score: 0,
         lives: 3,
@@ -364,15 +380,25 @@ function restartGame() {
     player.x = canvas.width / 2 - 25;
     bullets = [];
     alienBullets = [];
-    alienSpeed = 0.5;
 
     createAliens();
     updateScore();
     updateLives();
     updateLevel();
 
+    const difficultyMenu = document.getElementById('difficultyMenu');
+    if (difficultyMenu) difficultyMenu.style.display = 'none';
+}
+
+// Restart game - show difficulty menu again
+function restartGame() {
+    gameStarted = false;
+
     const gameOverElement = document.getElementById('gameOver');
     if (gameOverElement) gameOverElement.style.display = 'none';
+
+    const difficultyMenu = document.getElementById('difficultyMenu');
+    if (difficultyMenu) difficultyMenu.style.display = 'block';
 }
 
 // Draw everything
@@ -402,6 +428,12 @@ function draw() {
 function gameLoop() {
     // Poll gamepad input every frame (even when game over for restart)
     pollGamepad();
+
+    if (!gameStarted) {
+        // Waiting for difficulty selection
+        requestAnimationFrame(gameLoop);
+        return;
+    }
 
     if (gameState.gameOver) {
         // Keep polling for restart input
@@ -447,6 +479,5 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// Start game
-createAliens();
+// Start game loop (waits for difficulty selection)
 gameLoop();
