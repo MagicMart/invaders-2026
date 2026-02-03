@@ -4,11 +4,36 @@
 const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById('gameCanvas'));
 const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 
+// Your actual pixel art resolution
+const NATIVE_WIDTH = 320;
+const NATIVE_HEIGHT = 240;
+
+// Disable smoothing for crisp pixels
+ctx.imageSmoothingEnabled = false;
+
+function resizeCanvas() {
+    // Calculate integer scale factor
+    const scaleX = Math.floor(window.innerWidth / NATIVE_WIDTH);
+    const scaleY = Math.floor(window.innerHeight / NATIVE_HEIGHT);
+    const scale = Math.max(1, Math.min(scaleX, scaleY));
+
+    // Set display size (CSS)
+    canvas.style.width = (NATIVE_WIDTH * scale) + 'px';
+    canvas.style.height = (NATIVE_HEIGHT * scale) + 'px';
+
+    // Set actual canvas resolution
+    canvas.width = NATIVE_WIDTH;
+    canvas.height = NATIVE_HEIGHT;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
 // Difficulty settings
 const difficultySettings = {
-    easy: { baseSpeed: 0.3, speedIncrement: 0.2 },
-    medium: { baseSpeed: 0.5, speedIncrement: 0.3 },
-    hard: { baseSpeed: 0.8, speedIncrement: 0.4 }
+    easy: { baseSpeed: 0.12, speedIncrement: 0.08 },
+    medium: { baseSpeed: 0.2, speedIncrement: 0.12 },
+    hard: { baseSpeed: 0.32, speedIncrement: 0.16 }
 };
 
 /** @type {'easy' | 'medium' | 'hard'} */
@@ -28,32 +53,32 @@ let gameState = {
 // Player
 /** @type {Player} */
 const player = {
-    x: canvas.width / 2 - 25,
-    y: canvas.height - 60,
-    width: 50,
-    height: 30,
-    speed: 3,
+    x: NATIVE_WIDTH / 2 - 10,
+    y: NATIVE_HEIGHT - 24,
+    width: 20,
+    height: 12,
+    speed: 1.2,
     dx: 0
 };
 
 // Bullets
 /** @type {Bullet[]} */
 let bullets = [];
-const bulletSpeed = 5;
-const bulletWidth = 4;
-const bulletHeight = 15;
+const bulletSpeed = 2;
+const bulletWidth = 2;
+const bulletHeight = 6;
 
 // Aliens
 /** @type {Alien[]} */
 let aliens = [];
 const alienRows = 5;
 const alienCols = 11;
-const alienWidth = 40;
-const alienHeight = 30;
-const alienPadding = 10;
-let alienSpeed = 0.5;
+const alienWidth = 16;
+const alienHeight = 12;
+const alienPadding = 4;
+let alienSpeed = 0.2;
 let alienDirection = 1;
-let alienDropDistance = 20;
+let alienDropDistance = 8;
 const alienSpeedUpMultiplier = 3; // Max speed increase as aliens are destroyed
 
 // Alien bullets
@@ -150,8 +175,8 @@ function createAliens() {
     for (let row = 0; row < alienRows; row++) {
         for (let col = 0; col < alienCols; col++) {
             aliens.push({
-                x: col * (alienWidth + alienPadding) + 50,
-                y: row * (alienHeight + alienPadding) + 50,
+                x: col * (alienWidth + alienPadding) + 20,
+                y: row * (alienHeight + alienPadding) + 20,
                 width: alienWidth,
                 height: alienHeight,
                 alive: true,
@@ -181,11 +206,11 @@ function drawAlien(alien) {
 
     ctx.fillStyle = alien.type === 3 ? '#f00' : alien.type === 2 ? '#ff0' : '#0ff';
 
-    // Simple alien shape
-    ctx.fillRect(alien.x + 5, alien.y, 30, 20);
-    ctx.fillRect(alien.x, alien.y + 10, 40, 15);
-    ctx.fillRect(alien.x + 10, alien.y + 25, 5, 5);
-    ctx.fillRect(alien.x + 25, alien.y + 25, 5, 5);
+    // Simple alien shape (scaled to 40% of original)
+    ctx.fillRect(alien.x + 2, alien.y, 12, 8);
+    ctx.fillRect(alien.x, alien.y + 4, 16, 6);
+    ctx.fillRect(alien.x + 4, alien.y + 10, 2, 2);
+    ctx.fillRect(alien.x + 10, alien.y + 10, 2, 2);
 }
 
 /**
@@ -225,7 +250,7 @@ function updateBullets() {
     });
 
     alienBullets = alienBullets.filter(bullet => {
-        bullet.y += bulletSpeed - 2;
+        bullet.y += 1.2;
         return bullet.y < canvas.height;
     });
 }
@@ -326,7 +351,7 @@ function loseLife() {
     if (gameState.lives <= 0) {
         endGame();
     } else {
-        player.x = canvas.width / 2 - 25;
+        player.x = NATIVE_WIDTH / 2 - 10;
     }
 }
 
@@ -378,7 +403,7 @@ function startGame(difficulty) {
         gameOver: false
     };
 
-    player.x = canvas.width / 2 - 25;
+    player.x = NATIVE_WIDTH / 2 - 10;
     bullets = [];
     alienBullets = [];
 
@@ -419,7 +444,7 @@ function draw() {
 
     if (gameState.paused) {
         ctx.fillStyle = '#0f0';
-        ctx.font = '48px Courier New';
+        ctx.font = '20px Courier New';
         ctx.textAlign = 'center';
         ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
     }
